@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Progress</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f8f9fc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover {
+      background-color: #f0f4ff;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      background: #2970ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      z-index: 99;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+      background-color: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #2563eb;
+      border-radius: 10px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .calendar div {
+      padding: 0.3rem;
+      border-radius: 50%;
+    }
+
+    .highlight {
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .insight-box {
+      background-color: #f1f5ff;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .insight-box::before {
+      content: '\2713';
+      background-color: #2563eb;
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 50%;
+    }
+
+    .django-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 1rem;
+      height: 220px;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+
+    .django-bars div {
+      background-color: #2563eb;
+      width: 40px;
+      border-radius: 6px 6px 0 0;
+      position: relative;
+    }
+
+    .django-bars div::after {
+      content: attr(title);
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: #333;
+    }
+
+    .bar-labels {
+      display: flex;
+      justify-content: center;
+      gap: 3.3rem;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .pdf-btn-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 9;
+      }
+
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item">📈 Progress</div>
+    <div class="nav-item">🎯 Goals</div>
+    <div class="nav-item">🗓️ Calendar</div>
+    <div class="nav-item">📤 Daily Uploads</div>
+    <div class="nav-item">🔥 Streaks</div>
+    <div class="nav-item">⏱️ Pomodoro Timer</div>
+    <div class="nav-item">👤 Profile</div>
+    <div class="nav-item">🚪 Logout</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <div>
+        <h2>Track Progress</h2>
+
+        <div class="section">
+          <h3>Aspirations</h3>
+          <strong>Machine Learning</strong>
+          <div>Python 80%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 80%"></div></div>
+          <div>Regression 30%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 30%"></div></div>
+          <br>
+          <strong>GATE</strong>
+          <div>Algorithms 75%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+          <div>TOC 50%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div>
+          <div>DBMS 25%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 25%"></div></div>
+
+          <div class="calendar">
+            <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+            <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div>
+            <div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div>
+            <div>15</div><div>16</div><div class="highlight">18</div><div>19</div><div>20</div><div>21</div><div>22</div>
+            <div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div>29</div>
+            <div>30</div><div>31</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section">
+          <h3>MERN Stack</h3>
+          <div>Node js 60%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+          <div>campus-claritas 50%</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: 50%"></div></div>
+        </div>
+
+        <div class="section">
+          <h3>INSIGHTS</h3>
+          <div class="insight-box">
+            MERN Stack Milestone<br>
+            <small>Completed campus-claritas project</small>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Django Progress</h3>
+          <div class="django-bars">
+            <div style="height: 100px;" title="40%"></div>
+            <div style="height: 150px;" title="60%"></div>
+            <div style="height: 200px;" title="80%"></div>
+          </div>
+          <div class="bar-labels">
+            <span>Models</span>
+            <span>Views</span>
+            <span>APIs</span>
+          </div>
+          <div class="pdf-btn-container">
+            <button class="btn">Generate PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

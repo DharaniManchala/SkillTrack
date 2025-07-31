@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Streak Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background-color: #f8f9fc;
+    }
+
+    .toggle-btn {
+      background: #2970ff;
+      color: white;
+      padding: 10px 15px;
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1100;
+      border-radius: 6px;
+    }
+
+    .container {
+      display: flex;
+    }
+
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover {
+      background-color: #f0f4ff;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      transition: margin-left 0.3s ease;
+    }
+
+    @media (min-width: 769px) {
+      .sidebar.hidden + .main-content {
+        margin-left: 0;
+      }
+      .main-content {
+        margin-left: 240px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .top-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      background: #f0f4ff;
+      border-radius: 10px;
+      text-align: center;
+      padding: 15px;
+    }
+
+    .stat-card span {
+      font-size: 14px;
+      color: #444;
+    }
+
+    .stat-card .value {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .calendar-title {
+      margin: 20px 0 10px;
+      font-weight: 600;
+    }
+
+    .calendar-wrapper {
+      overflow-x: auto;
+    }
+
+    .month-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 0 2px;
+      color: #666;
+    }
+
+    .month-labels span {
+      width: calc(100% / 12);
+      text-align: center;
+    }
+
+    .github-calendar {
+      display: grid;
+      grid-template-columns: repeat(53, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .week-column {
+      display: grid;
+      grid-template-rows: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background-color: #ebedf0;
+    }
+
+    .level-1 { background-color: #9be9a8; }
+    .level-2 { background-color: #40c463; }
+    .level-3 { background-color: #30a14e; }
+    .level-4 { background-color: #216e39; }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      margin: 15px 0;
+      color: #555;
+    }
+
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .bottom-section {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .achievements, .stats {
+      flex: 1;
+    }
+
+    .achievement {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .achievement i {
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="toggle-btn" id="toggleBtn">☰</button>
+
+  <div class="container">
+    <div class="sidebar hidden" id="sidebar">
+      <h2>Menu</h2>
+      <div class="nav-item">🏠 Home</div>
+      <div class="nav-item">📈 Progress</div>
+      <div class="nav-item">🎯 Goals</div>
+      <div class="nav-item">🗓️ Calendar</div>
+      <div class="nav-item">📤 Daily Uploads</div>
+      <div class="nav-item">🔥 Streaks</div>
+      <div class="nav-item">⏱️ Pomodoro Timer</div>
+      <div class="nav-item">👤 Profile</div>
+      <div class="nav-item">🚪 Logout</div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+      <h1>Streaks & Contributions</h1>
+
+      <div class="top-stats">
+        <div class="stat-card"><span>🔥 Current Streak</span><div class="value" id="currentStreak">0 Days</div></div>
+        <div class="stat-card"><span>🏆 Longest Streak</span><div class="value" id="longestStreak">0 Days</div></div>
+        <div class="stat-card"><span>✅ Upload Today</span><div class="value" style="color: green;">Yes</div></div>
+      </div>
+
+      <div class="calendar-title">Contribution Calendar</div>
+      <div class="calendar-wrapper">
+        <div class="month-labels">
+          <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+          <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+        </div>
+        <div class="github-calendar" id="calendar"></div>
+      </div>
+
+      <div class="legend">
+        <span>Less</span>
+        <div class="legend-box" style="background-color: #ebedf0;"></div>
+        <div class="legend-box level-1"></div>
+        <div class="legend-box level-2"></div>
+        <div class="legend-box level-3"></div>
+        <div class="legend-box level-4"></div>
+        <span>More</span>
+      </div>
+
+      <div class="bottom-section">
+        <div class="achievements">
+          <h3>Achievements</h3>
+          <div class="achievement"><i>✅</i> 7-Day Streak</div>
+          <div class="achievement"><i>✅</i> 30-Day Streak</div>
+          <div class="achievement"><i>🔒</i> 100-Day Streak</div>
+        </div>
+        <div class="stats">
+          <h3>Stats</h3>
+          <p>Total Uploads: <strong id="totalContributions">0</strong></p>
+          <p>Avg. Uploads/Day: <strong>1.8</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const toggleBtn = document.getElementById("toggleBtn");
+    const sidebar = document.getElementById("sidebar");
+
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("hidden");
+    });
+
+    const calendar = document.getElementById("calendar");
+    const totalDays = 365;
+    const today = new Date();
+    const data = [];
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let streak = 0;
+    let total = 0;
+
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const count = Math.random() < 0.7 ? Math.floor(Math.random() * 10) : 0;
+      data.push({ date, count });
+    }
+
+    let week = [];
+    data.forEach((item, index) => {
+      if (item.count > 0) {
+        streak++;
+        total++;
+        currentStreak = streak;
+      } else {
+        longestStreak = Math.max(longestStreak, streak);
+        streak = 0;
+      }
+
+      const level = item.count === 0 ? 0 : item.count <= 2 ? 1 : item.count <= 4 ? 2 : item.count <= 6 ? 3 : 4;
+      week.push(`<div class="day-cell level-${level}"></div>`);
+
+      if (week.length === 7 || index === data.length - 1) {
+        const weekColumn = document.createElement("div");
+        weekColumn.classList.add("week-column");
+        weekColumn.innerHTML = week.join("");
+        calendar.appendChild(weekColumn);
+        week = [];
+      }
+    });
+
+    document.getElementById("totalContributions").textContent = total;
+    document.getElementById("currentStreak").textContent = `${currentStreak} Days`;
+    document.getElementById("longestStreak").textContent = `${Math.max(longestStreak, currentStreak)} Days`;
+  </script>
+</body>
+</html>
