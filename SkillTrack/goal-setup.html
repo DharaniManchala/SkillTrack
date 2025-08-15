@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkillTrack | Goal Setup</title>
+  <link rel="stylesheet" href="goal-setup.css" />
+</head>
+<body>
+
+  <div class="goal-container">
+    <h2>🎯 Setup Your Learning Goals</h2>
+
+    <form id="goalForm">
+      <div class="form-group">
+        <label for="goal">Enter Goal Name</label>
+        <input type="text" id="goal" placeholder="e.g., GATE, Full Stack, ML" required />
+      </div>
+
+      <div class="form-group">
+        <label for="topics">Enter Topics (comma-separated)</label>
+        <input type="text" id="topics" placeholder="e.g., DBMS, CN, OS" required />
+      </div>
+
+      <div class="form-actions">
+        <button type="button" onclick="addGoal()">➕ Add Another Goal</button>
+        <button type="button" onclick="submitGoals()">✅ Submit All Goals</button>
+      </div>
+    </form>
+
+    <div id="goalsPreview">
+      <!-- Preview goals here -->
+    </div>
+  </div>
+
+  <script src="goal-setup.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Progress</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f8f9fc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover {
+      background-color: #f0f4ff;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      background: #2970ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      z-index: 99;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar {
+      background-color: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #2563eb;
+      border-radius: 10px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .calendar div {
+      padding: 0.3rem;
+      border-radius: 50%;
+    }
+
+    .highlight {
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .insight-box {
+      background-color: #f1f5ff;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .insight-box::before {
+      content: '\2713';
+      background-color: #2563eb;
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 50%;
+    }
+
+    .django-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 1rem;
+      height: 220px;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+
+    .django-bars div {
+      background-color: #2563eb;
+      width: 40px;
+      border-radius: 6px 6px 0 0;
+      position: relative;
+    }
+
+    .django-bars div::after {
+      content: attr(title);
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: #333;
+    }
+
+    .bar-labels {
+      display: flex;
+      justify-content: center;
+      gap: 3.3rem;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .pdf-btn-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 9;
+      }
+
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item">📈 Progress</div>
+    <div class="nav-item">🎯 Goals</div>
+    <div class="nav-item">🗓️ Calendar</div>
+    <div class="nav-item">📤 Daily Uploads</div>
+    <div class="nav-item">🔥 Streaks</div>
+    <div class="nav-item">⏱️ Pomodoro Timer</div>
+    <div class="nav-item">👤 Profile</div>
+    <div class="nav-item">🚪 Logout</div>
+  </div>
+
+ 
+  <div class="main-content">
+    <div class="container">
+      <div>
+        <h2>Track Progress</h2>
+
+        <div class="section">
+          <h3>Aspirations</h3>
+          <div id="dynamicGoals"></div>
+          
+
+          <div class="calendar">
+           
+          </div>
+        </div>
+      </div>
+
+      <div>
+       
+
+        
+          <h3>INSIGHTS</h3>
+          <div class="insight-box">
+           
+          </div>
+       
+        <div id="barChart"></div>
+
+       
+          <div class="pdf-btn-container">
+            <button class="btn">Generate PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> 
+<!-- <div class="main-content">
+  <div class="container">
+    <div>
+      <h2>Track Progress</h2>
+      <div class="section">
+        <h3>Aspirations</h3>
+        <div id="dynamicGoals"></div>
+        <div id="calendar"></div>
+      </div>
+    </div>
+    <div>
+      <h3>INSIGHTS</h3>
+      <div id="insightBox"></div>
+      <div id="barChart"></div>
+      <div class="pdf-btn-container">
+        <button class="btn">Generate PDF</button>
+      </div>
+    </div>
+  </div>
+</div> -->
+  <script>
+    function renderCalendar(month, year) {
+  const calendarDiv = document.getElementById('calendar');
+  calendarDiv.innerHTML = '';
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const weekdays = ['S','M','T','W','T','F','S'];
+  weekdays.forEach(d => {
+    const cell = document.createElement('div');
+    cell.textContent = d;
+    calendarDiv.appendChild(cell);
+  });
+  for (let i = 0; i < firstDay; i++) {
+    calendarDiv.appendChild(document.createElement('div'));
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cell = document.createElement('div');
+    cell.textContent = day;
+    cell.style.cursor = 'pointer';
+    cell.onclick = () => onDateClick(year, month, day);
+    calendarDiv.appendChild(cell);
+  }
+}
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+    window.addEventListener('DOMContentLoaded', async () => {
+
+  const email = localStorage.getItem('userEmail');
+  if (!email) return;
+  try {
+    const res = await fetch(`http://localhost:5000/api/progress?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    const goalsDiv = document.getElementById('dynamicGoals');
+    goalsDiv.innerHTML = '';
+    if (res.ok && data.progress) {
+      data.progress.forEach(goal => {
+        goalsDiv.innerHTML += `
+          <div class="section">
+            <h3>${goal.goal} <span style="color:#2970ff;font-weight:bold;">${goal.progress}%</span></h3>
+            ${goal.subtopics.map(sub => `
+              <div>${sub.topic} <span style="color:#2970ff;">${sub.progress}%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${sub.progress}%"></div></div>
+            `).join('')}
+          </div>
+        `;
+      });
+    } else {
+      goalsDiv.innerHTML = '<div>No progress data yet.</div>';
+    }
+  } catch {
+    document.getElementById('dynamicGoals').innerHTML = '<div>Error loading progress.</div>';
+  }
+});
+
+async function onDateClick(year, month, day) {
+  const email = localStorage.getItem('userEmail');
+  const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  try {
+    const res = await fetch(`http://localhost:5000/api/progress?email=${encodeURIComponent(email)}&until=${dateStr}`);
+    const data = await res.json();
+    showProgressSummary(data.progress, dateStr);
+    showInsights(data.progress);
+    renderBarChart(data.progress);
+  } catch {
+    document.getElementById('dynamicGoals').innerHTML = '<div>Error loading progress.</div>';
+  }
+}
+function showInsights(progress) {
+  const insightDiv = document.getElementById('insightBox');
+  insightDiv.innerHTML = '';
+  if (!progress || progress.length === 0) return;
+  let best = progress[0], worst = progress[0];
+  progress.forEach(goal => {
+    if (goal.progress > best.progress) best = goal;
+    if (goal.progress < worst.progress) worst = goal;
+  });
+  insightDiv.innerHTML = `
+    <div class="insight-box">
+      ${best.goal} is your top goal! <br>
+      <small>Keep it up! Try to focus more on ${worst.goal}.</small>
+    </div>
+  `;
+}
+function showProgressSummary(progress, dateStr) {
+  const goalsDiv = document.getElementById('dynamicGoals');
+  goalsDiv.innerHTML = `<h3>Progress till ${dateStr}</h3>`;
+  if (!progress || progress.length === 0) {
+    goalsDiv.innerHTML += '<div>You haven\'t started anything yet!</div>';
+    return;
+  }
+  progress.forEach(goal => {
+    goalsDiv.innerHTML += `
+      <div class="section">
+        <h3>${goal.goal} <span style="color:#2970ff;font-weight:bold;">${goal.progress}%</span></h3>
+        ${goal.subtopics.map(sub => `
+          <div>${sub.topic} <span style="color:#2970ff;">${sub.progress}%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${sub.progress}%"></div></div>
+        `).join('')}
+      </div>
+    `;
+  });
+}
+function renderBarChart(progress) {
+  const barDiv = document.getElementById('barChart');
+  barDiv.innerHTML = '<h3>All Goals Progress</h3><div class="django-bars">';
+  if (!progress || progress.length === 0) {
+    barDiv.innerHTML += '<div>No data</div>';
+    return;
+  }
+  progress.forEach(goal => {
+    barDiv.innerHTML += `<div style="height:${goal.progress*2}px;" title="${goal.progress}%"></div>`;
+  });
+  barDiv.innerHTML += '</div><div class="bar-labels">' +
+    progress.map(goal => `<span>${goal.goal}</span>`).join('') +
+    '</div>';
+}
+renderCalendar(new Date().getMonth(), new Date().getFullYear());
+  </script>
+</body>
+</html>

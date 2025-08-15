@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Upload with Sidebar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f8f9fc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover {
+      background-color: #f0f4ff;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      background: #2970ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      z-index: 99;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 36px;
+      color: #2d3748;
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+
+    .upload-form {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #111;
+      text-align: center;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 80px;
+    }
+
+    .file-upload {
+      border: 2px dashed #d0d5dd;
+      text-align: center;
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+
+    .upload-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .file-upload button {
+      background: #2970ff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .tags {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .tag {
+      background: #f0f4ff;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #3b5bdb;
+    }
+    .tag.selected {
+  background: #2970ff;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #1d3e7a;
+}
+
+    .upload-btn {
+      width: 100%;
+      background: #2970ff;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    select#goalTitle,
+select#topic {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  margin-bottom: 10px;
+  margin-top: 5px;
+  appearance: none;
+  box-shadow: 0 2px 8px rgba(44, 92, 197, 0.08);
+  font-weight: 500;
+}
+.upload-btn,
+.file-upload button {
+  background: linear-gradient(90deg, #2970ff 60%, #00ff91 100%);
+  color: white;
+  padding: 12px 0;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(44, 92, 197, 0.08);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.upload-btn:hover,
+.file-upload button:hover {
+  background: linear-gradient(90deg, #1d3e7a 60%, #00aa77 100%);
+  transform: scale(1.05);
+}
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 9;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+<h2>Menu</h2>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item">📈 Progress</div>
+    <div class="nav-item">🎯 Goals</div>
+    <div class="nav-item">🗓️ Calendar</div>
+    <div class="nav-item">📤 Daily Uploads</div>
+    <div class="nav-item">🔥 Streaks</div>
+    <div class="nav-item">⏱️ Pomodoro Timer</div>
+    <div class="nav-item">👤 Profile</div>
+    <div class="nav-item">🚪 Logout</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-title">📤 Daily Uploads</div>
+
+    <div class="upload-form">
+      <h1>Upload Your Progress</h1>
+      <label for="goalTitle">Goal Title</label>
+<select id="goalTitle"></select>
+
+<label for="topic">Topic</label>
+<select id="topic"></select>
+
+      <!-- <label for="goalTitle">Goal Title</label>
+<input type="text" id="goalTitle" placeholder="e.g., Maths, MERN Stack" />
+
+<label for="topic">Topic</label>
+<input type="text" id="topic" placeholder="e.g., Sets, React" /> -->
+
+      <label for="date">Date</label>
+      <input type="date" id="date" value="2025-07-24"/>
+
+      <label for="title">Title</label>
+      <input type="text" id="title" placeholder="Enter title" />
+
+      <label for="description">Description</label>
+      <textarea id="description" placeholder="Add a description (optional)"></textarea>
+      <label for="percentage">Completion Percentage</label>
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 10px;">
+  <input type="range" id="percentage" min="0" max="100" value="0" style="flex:1;">
+  <span id="percentageValue" style="font-weight:bold; font-size:18px; color:#2970ff;">0%</span>
+</div>
+
+      <div class="file-upload">
+        <div class="upload-icon">⬆️</div>
+        <p>Drag and drop files here or</p>
+        <input type="file" id="fileInput" hidden />
+        <button onclick="document.getElementById('fileInput').click()">Choose file</button>
+      </div>
+      <div class="tags">
+  <span class="tag" onclick="toggleTag(this)">Study</span>
+  <span class="tag" onclick="toggleTag(this)">Project</span>
+  <span class="tag" onclick="toggleTag(this)">Practice</span>
+</div>
+
+      <!-- <div class="tags">
+        <span class="tag">Study</span>
+        <span class="tag">Project</span>
+        <span class="tag">Practice</span>
+      </div> -->
+
+      <button class="upload-btn" onclick="handleUpload()">Upload</button>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+  const email = localStorage.getItem('userEmail');
+  if (!email) return;
+
+  // Fetch user's goals
+  try {
+    const res = await fetch(`http://localhost:5000/api/goals?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (res.ok && data.goals) {
+      const goalSelect = document.getElementById('goalTitle');
+      goalSelect.innerHTML = '';
+      data.goals.forEach(goal => {
+        const option = document.createElement('option');
+        option.value = goal.title;
+        option.textContent = goal.title;
+        goalSelect.appendChild(option);
+      });
+
+      // Populate topics for the first goal
+      if (data.goals.length > 0) {
+        populateTopics(data.goals[0].tags);
+      }
+
+      // Change topics when goal changes
+      goalSelect.addEventListener('change', function() {
+        const selectedGoal = data.goals.find(g => g.title === this.value);
+        populateTopics(selectedGoal ? selectedGoal.tags : []);
+      });
+    }
+  } catch {}
+});
+
+function populateTopics(tags) {
+  const topicSelect = document.getElementById('topic');
+  topicSelect.innerHTML = '';
+  tags.forEach(tag => {
+    const option = document.createElement('option');
+    option.value = tag;
+    option.textContent = tag;
+    topicSelect.appendChild(option);
+  });
+}
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    // function handleUpload() {
+    //   const date = document.getElementById('date').value;
+    //   const title = document.getElementById('title').value;
+    //   const description = document.getElementById('description').value;
+    //   const fileInput = document.getElementById('fileInput');
+    //   const fileName = fileInput.files.length > 0 ? fileInput.files[0].name : 'No file selected';
+
+    //   alert(`✅ Uploading:\n📅 Date: ${date}\n📝 Title: ${title}\n📄 Description: ${description || 'No description'}\n📁 File: ${fileName}`);
+    // }
+    function toggleTag(tagElem) {
+  tagElem.classList.toggle('selected');
+}
+const percentageSlider = document.getElementById('percentage');
+const percentageValue = document.getElementById('percentageValue');
+percentageSlider.addEventListener('input', function() {
+  percentageValue.textContent = `${this.value}%`;
+});
+
+async function handleUpload() {
+  const email = localStorage.getItem('userEmail');
+  const goalTitle = document.getElementById('goalTitle').value;
+  const topic = document.getElementById('topic').value;
+  const date = document.getElementById('date').value;
+  const title = document.getElementById('title').value;
+  const description = document.getElementById('description').value;
+  const fileInput = document.getElementById('fileInput');
+  const tags = Array.from(document.querySelectorAll('.tag.selected')).map(tag => tag.textContent);
+  const percentage = document.getElementById('percentage').value;
+
+  // Require at least one field
+  if (!goalTitle && !topic && !title && !description && fileInput.files.length === 0 && tags.length === 0) {
+    alert('Please fill at least one field before uploading.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('email', email);
+  formData.append('goalTitle', goalTitle);
+  formData.append('topic', topic);
+  formData.append('date', date);
+  formData.append('title', title);
+  formData.append('description', description);
+  formData.append('tags', JSON.stringify(tags));
+  formData.append('percentage', percentage); // <-- Move this line here
+  if (fileInput.files.length > 0) {
+    formData.append('file', fileInput.files[0]);
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/api/dailyupload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('✅ Upload successful!');
+      window.location.href = 'progress.html'; // <-- Redirect after success
+    } else {
+      alert(data.error || 'Failed to save daily upload');
+    }
+  } catch {
+    alert('Server error. Please try again later.');
+  }
+}
+  </script>
+</body>
+</html>
+

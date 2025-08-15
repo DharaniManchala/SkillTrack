@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Progress</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f1f5ff;
+      overflow-x: hidden;
+    }
+
+   .toggle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      background: #2970ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      z-index: 99;
+    }
+
+
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      z-index: 10;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background-color: #f0f4ff;
+      font-weight: bold;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .heading-box {
+      background-color: #2c5cc5;
+      padding: 15px 25px;
+      border-radius: 12px;
+      color: white;
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .card {
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      color: #333;
+      margin-bottom: 10px;
+      white-space: pre-line;
+    }
+    .card.selected {
+  border: 2px solid #2970ff;
+  box-shadow: 0 0 12px #2970ff22;
+}
+
+    .progress-bar {
+      height: 10px;
+      border-radius: 10px;
+      background-color: #d9d9d9;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background-color: #3266c0;
+      width: 0%;
+      transition: width 0.5s ease-in-out;
+    }
+
+    .progress-text {
+      text-align: right;
+      font-weight: bold;
+      color: #333;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        background-color: #fff;
+        z-index: 9;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item">📈 Progress</div>
+    <div class="nav-item">🎯 Goals</div>
+    <div class="nav-item">🗓️ Calendar</div>
+    <div class="nav-item">📤 Daily Uploads</div>
+    <div class="nav-item">🔥 Streaks</div>
+    <div class="nav-item">⏱️ Pomodoro Timer</div>
+    <div class="nav-item">👤 Profile</div>
+    <div class="nav-item">🚪 Logout</div>
+  </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Place this inside .main-content -->
+<div class="heading-box">Your Progress</div>
+<div id="goalsList"></div>
+<div id="subtopicsList"></div>
+  </div>
+   
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    }
+    window.addEventListener('DOMContentLoaded', async () => {
+  const email = localStorage.getItem('userEmail');
+  if (!email) return;
+  try {
+    const res = await fetch(`http://localhost:5000/api/progress?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    const goalsDiv = document.getElementById('goalsList');
+    const subtopicsDiv = document.getElementById('subtopicsList');
+    goalsDiv.innerHTML = '';
+    subtopicsDiv.innerHTML = '';
+
+    if (res.ok && data.progress) {
+      data.progress.forEach(goal => {
+        // Main goal card with circular progress
+        goalsDiv.innerHTML += `
+          
+              <div class="card" style="cursor:pointer;" onclick="showSubtopics('${goal.goal}', )">
+            <div style="display:flex;align-items:center;gap:18px;">
+              <div style="width:60px;height:60px;position:relative;">
+                <svg width="60" height="60">
+                  <circle cx="30" cy="30" r="28" stroke="#eee" stroke-width="4" fill="none"/>
+                  <circle cx="30" cy="30" r="28" stroke="#2970ff" stroke-width="4" fill="none"
+                    stroke-dasharray="${2 * Math.PI * 28}"
+                    stroke-dashoffset="${2 * Math.PI * 28 * (1 - goal.progress / 100)}"
+                    style="transition:stroke-dashoffset 0.5s;"/>
+                </svg>
+                <div style="position:absolute;top:0;left:0;width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;color:#2970ff;">
+                  ${goal.progress}%
+                </div>
+              </div>
+              <div>
+                <h2 style="margin-bottom:4px;">${goal.goal}</h2>
+                <div style="color:#888;">Click to view subtopics</div>
+              </div>
+            </div>
+          </div>
+        `;
+      window.lastProgressData = data.progress; 
+      });
+      //  window.lastProgressData = data.progress; 
+
+      // Show subtopics for the first goal by default
+      //  if (data.progress.length > 0) showSubtopics(data.progress[0].goal, data.progress);
+    }
+  } catch {
+    document.getElementById('goalsList').innerHTML = '<div>Error loading progress.</div>';
+  }
+});
+
+// Helper to show subtopics for a goal
+// function showSubtopics(goalTitle, progressData) {
+//   // If not passed, get from last fetch
+//   if (!progressData) {
+//     const lastData = window.lastProgressData;
+//     progressData = lastData;
+//   }
+//   // Save for later use
+//   window.lastProgressData = progressData;
+
+//   const subtopicsDiv = document.getElementById('subtopicsList');
+//   subtopicsDiv.innerHTML = '';
+//   const goal = progressData.find(g => g.goal === goalTitle);
+//   if (!goal) return;
+//   subtopicsDiv.innerHTML = `<div class="card"><h2>${goal.goal} Subtopics</h2></div>`;
+//   goal.subtopics.forEach(sub => {
+//     subtopicsDiv.innerHTML += `
+//       <div class="card">
+//         <h3>${sub.topic}</h3>
+//         <div class="progress-bar">
+//           <div class="progress-bar-fill" style="width:${sub.progress}%;"></div>
+//         </div>
+//         <div class="progress-text">${sub.progress}%</div>
+//       </div>
+//     `;
+//   });
+// }
+function showSubtopics(goalTitle) {
+  const progressData = window.lastProgressData;
+  // Highlight selected goal card
+  document.querySelectorAll('#goalsList .card').forEach(card => {
+    card.classList.remove('selected');
+    if (card.querySelector('h2') && card.querySelector('h2').textContent === goalTitle) {
+      card.classList.add('selected');
+    }
+  });
+
+  const subtopicsDiv = document.getElementById('subtopicsList');
+  subtopicsDiv.innerHTML = '';
+  const goal = progressData.find(g => g.goal === goalTitle);
+  if (!goal) return;
+  subtopicsDiv.innerHTML = `<div class="card"><h2>${goal.goal} Subtopics</h2></div>`;
+  goal.subtopics.forEach(sub => {
+    subtopicsDiv.innerHTML += `
+      <div class="card">
+        <h3>${sub.topic}</h3>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width:${sub.progress}%;"></div>
+        </div>
+        <div class="progress-text">${sub.progress}%</div>
+      </div>
+    `;
+  });
+}
+
+  </script>
+</body>
+</html>

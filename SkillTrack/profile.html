@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile Page</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #f8f9fc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background-color: #ffffff;
+      padding: 20px 15px;
+      border-right: 1px solid #e0e0e0;
+      box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      position: absolute;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .nav-item:hover {
+      background-color: #f0f4ff;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      background: #2970ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      z-index: 99;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .profile-container {
+      text-align: center;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-pic-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .profile-pic {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background-color: #ccc;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/149/149071.png');
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+
+    .profile-pic:hover {
+      box-shadow: 0 0 0 4px #00ff91;
+    }
+
+    .camera-icon {
+      position: absolute;
+      bottom: 10px;
+      right: 0;
+      background-color: #00ff91;
+      border-radius: 50%;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .camera-icon img {
+      width: 20px;
+      height: 20px;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: red;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .edit-btn {
+      color: #00aa77;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .form-section {
+      display: none;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .form-section input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #f8f8f8;
+    }
+
+    .form-buttons {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-buttons button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .save-btn {
+      background-color: #00ff91;
+      color: black;
+    }
+
+    .back-btn {
+      background-color: #ff5e5e;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        z-index: 9;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toggle Button -->
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Menu</h2>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item">📈 Progress</div>
+    <div class="nav-item">🎯 Goals</div>
+    <div class="nav-item">🗓️ Calendar</div>
+    <div class="nav-item">📤 Daily Uploads</div>
+    <div class="nav-item">🔥 Streaks</div>
+    <div class="nav-item">⏱️ Pomodoro Timer</div>
+    <div class="nav-item">👤 Profile</div>
+    <div class="nav-item">🚪 Logout</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="profile-container">
+      <div class="profile-pic-wrapper">
+        <div class="profile-pic" id="profilePic" onclick="document.getElementById('fileInput').click();"></div>
+        <div class="camera-icon">
+          <label for="fileInput">
+            <img src="https://cdn-icons-png.flaticon.com/512/747/747545.png" alt="camera">
+          </label>
+          <button class="remove-btn" type="button" onclick="removeImage()">×</button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)">
+      </div>
+
+      <div class="edit-btn" onclick="showForm()">Edit</div>
+
+      <div class="form-section" id="editForm">
+        <input type="text" placeholder="Username" id="username">
+        <input type="text" placeholder="About" id="about">
+        <input type="text" placeholder="College Name" id="college">
+
+        <div class="form-buttons">
+          <button class="back-btn" type="button" onclick="hideForm()">Back</button>
+          <button class="save-btn" type="button" onclick="saveProfile()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function showForm() {
+      document.getElementById("editForm").style.display = "block";
+    }
+
+    function hideForm() {
+      document.getElementById("editForm").style.display = "none";
+    }
+
+    async function saveProfile() {
+      const username = document.getElementById("username").value.trim();
+      const about = document.getElementById("about").value.trim();
+      const college = document.getElementById("college").value.trim();
+      const email = localStorage.getItem('userEmail');
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (!username || !about || !college) {
+        alert("Please fill all fields.");
+        return;
+      }
+      if (!email) {
+        alert("User email not found. Please login again.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('username', username);
+      formData.append('about', about);
+      formData.append('college', college);
+      if (file) {
+        formData.append('profilePic', file);
+      }
+
+      try {
+        const res = await fetch('http://localhost:5000/api/profile', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Profile saved!');
+          window.location.href = 'page.html';
+        } else {
+          alert(data.error || 'Profile update failed');
+        }
+      } catch {
+        alert('Server error. Please try again later.');
+      }
+      hideForm();
+    }
+
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        document.getElementById('profilePic').style.backgroundImage = `url('${reader.result}')`;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function removeImage() {
+      const defaultImage = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+      document.getElementById('profilePic').style.backgroundImage = `url('${defaultImage}')`;
+      document.getElementById('fileInput').value = "";
+    }
+  </script>
+</body>
+</html>

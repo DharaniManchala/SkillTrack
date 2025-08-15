@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillTrack | Add Topic</title>
+  <link rel="stylesheet" href="topic-entry.css" />
+</head>
+<body>
+  <header>
+    <h1>📚 Add a Topic You Studied</h1>
+    <div class="profile-section">
+      <img src="assets/placeholder-profile.png" alt="Profile" class="profile-pic" />
+    </div>
+  </header>
+
+  <main>
+    <form id="topicForm">
+      <div class="form-group">
+        <label for="goal">Goal</label>
+        <select id="goal" required>
+          <option value="">Select Goal</option>
+          <option>GATE</option>
+          <option>Competitive Exams</option>
+          <option>Machine Learning</option>
+          <option>DSA</option>
+          <option>Full Stack</option>
+          <option>Projects</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="subject-group">
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" placeholder="e.g., Operating Systems" />
+      </div>
+
+      <div class="form-group">
+        <label for="topic">Topic</label>
+        <input type="text" id="topic" placeholder="e.g., Round Robin Scheduling" required />
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Upload Notes (PDF/Docs)</label>
+        <input type="file" id="notes" accept="application/pdf,.doc,.docx" />
+      </div>
+
+      <div class="form-group">
+        <label for="video">Upload Video Link</label>
+        <input type="url" id="video" placeholder="https://youtu.be/..." />
+      </div>
+
+      <div class="form-group">
+        <label for="images">Upload Images</label>
+        <input type="file" id="images" accept="image/*" multiple />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description / Notes</label>
+        <textarea id="description" rows="3" placeholder="Write any additional notes..."></textarea>
+      </div>
+
+      <div class="button-group">
+        <button type="submit">Save Entry</button>
+        <button type="reset">Clear Form</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="topic-entry.js"></script>
+</body>
+</html>
