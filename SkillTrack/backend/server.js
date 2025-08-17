@@ -53,25 +53,7 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// Login route
-// app.post('/api/login', async (req, res) => {
-//   try {
-//     const { email, phone, password } = req.body;
-//     // Find user by email and phone
-//     const user = await User.findOne({ email, phone });
-//     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
-//     // Compare password
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
-
-//     // Send profileCompleted status
-//     res.json({ message: 'Login successful', profileCompleted: user.profileCompleted });
-//   } catch (err) {
-//     res.status(400).json({ error: err.message });
-//   }
-// });
-// backend/server.js
 app.post('/api/login', async (req, res) => {
   try {
     const { email, phone, password } = req.body;
@@ -198,71 +180,53 @@ app.post('/api/dailyupload', uploadDaily.single('file'), async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-// app.get('/api/progress', async (req, res) => {
-//   const { email } = req.query;
-//   const user = await User.findOne({ email });
-//   if (!user) return res.status(404).json({ error: 'User not found' });
 
-//   const progressData = [];
-//   user.goals.forEach(goal => {
-//     // Group uploads by topic
-//     const topicMap = {};
-//     (goal.dailyUploads || []).forEach(upload => {
-//       if (!topicMap[upload.topic]) topicMap[upload.topic] = [];
-//       topicMap[upload.topic].push(upload);
-//     });
 
-//     // Calculate subtopic progress
-//     const subtopics = [];
-//     Object.keys(topicMap).forEach(topic => {
-//       let total = 0;
-//       topicMap[topic].forEach(u => {
-//         total += Number(u.percentage || 0);
-//       });
-//       if (total > 100) total = 100;
-//       subtopics.push({ topic, progress: total });
-//     });
 
-//     // Calculate main goal progress (average of subtopics)
-//     const goalProgress = subtopics.length
-//       ? Math.round(subtopics.reduce((sum, s) => sum + s.progress, 0) / subtopics.length)
-//       : 0;
 
-//     progressData.push({
-//       goal: goal.title,
-//       progress: goalProgress,
-//       subtopics
-//     });
-//   });
 
-//   res.json({ progress: progressData });
-// });
 app.get('/api/progress', async (req, res) => {
   const { email, until } = req.query;
   const user = await User.findOne({ email });
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   const progressData = [];
+  let allDates = [];
+
   user.goals.forEach(goal => {
-    // Group uploads by topic
+    // Group uploads by topic, filter by date
     const topicMap = {};
     (goal.dailyUploads || []).forEach(upload => {
-      // Filter by date if 'until' is provided
       if (until && upload.date > until) return;
       if (!topicMap[upload.topic]) topicMap[upload.topic] = [];
       topicMap[upload.topic].push(upload);
+      allDates.push(upload.date);
     });
 
     // Calculate subtopic progress
     const subtopics = [];
-    Object.keys(topicMap).forEach(topic => {
-      let total = 0;
-      topicMap[topic].forEach(u => {
-        total += Number(u.percentage || 0);
+    if (goal.topics && goal.topics.length) {
+      // If you have a topics array in each goal, use it to show all subtopics even if not started
+      goal.topics.forEach(topic => {
+        const uploads = topicMap[topic] || [];
+        let total = 0;
+        uploads.forEach(u => {
+          total += Number(u.percentage || 0);
+        });
+        if (total > 100) total = 100;
+        subtopics.push({ topic, progress: total });
       });
-      if (total > 100) total = 100;
-      subtopics.push({ topic, progress: total });
-    });
+    } else {
+      // If not, just use topics from uploads
+      Object.keys(topicMap).forEach(topic => {
+        let total = 0;
+        topicMap[topic].forEach(u => {
+          total += Number(u.percentage || 0);
+        });
+        if (total > 100) total = 100;
+        subtopics.push({ topic, progress: total });
+      });
+    }
 
     // Calculate main goal progress (average of subtopics)
     const goalProgress = subtopics.length
@@ -276,9 +240,87 @@ app.get('/api/progress', async (req, res) => {
     });
   });
 
-  res.json({ progress: progressData });
+  // Days completed logic
+  const uniqueDays = new Set(allDates);
+  res.json({ progress: progressData, daysCompleted: uniqueDays.size });
 });
+
 // ...existing code...
+
+app.get('/api/daily-uploads', async (req, res) => {
+  const { email } = req.query;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  // Build a map of date -> count for the last 365 days
+  const today = new Date();
+  const dateCounts = {};
+  // Initialize all dates in the last 365 days to 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    dateCounts[dateStr] = 0;
+  }
+
+  // Count uploads per day
+  user.goals.forEach(goal => {
+    (goal.dailyUploads || []).forEach(upload => {
+      if (dateCounts.hasOwnProperty(upload.date)) {
+        dateCounts[upload.date]++;
+      }
+    });
+  });
+
+  // Convert to array for frontend
+  const result = Object.entries(dateCounts).map(([date, count]) => ({ date, count }));
+
+  res.json(result);
+});
+
+
+app.post('/api/dailyupload', uploadDaily.single('file'), async (req, res) => {
+  try {
+    const { email, goalTitle, topic, date, title, description, tags } = req.body;
+    const filePath = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Find user and push the daily upload under the correct goal/topic
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Find the goal
+    const goalIndex = user.goals.findIndex(g => g.title === goalTitle);
+    if (goalIndex === -1) return res.status(404).json({ error: 'Goal not found' });
+
+    // Ensure date is saved as YYYY-MM-DD
+    // const formattedDate = new Date(date).toISOString().slice(0,10);
+    const formattedDate = typeof date === 'string' && date.length === 10 ? date : new Date(date).toISOString().slice(0,10);
+
+    // Prepare daily upload object
+    const dailyUpload = {
+      topic,
+      date: formattedDate,
+      title,
+      description,
+      tags: tags ? JSON.parse(tags) : [],
+      file: filePath,
+      percentage: req.body.percentage
+    };
+
+    // Push under the goal
+    if (!user.goals[goalIndex].dailyUploads) user.goals[goalIndex].dailyUploads = [];
+    user.goals[goalIndex].dailyUploads.push(dailyUpload);
+
+    await user.save();
+    res.json({ message: 'Daily upload saved!' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// ...existing code...
+
+// ...existing code...o it sinot color correctly in heatmap i signup with nwmai and upload todasy auh16 but it shows in dec
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

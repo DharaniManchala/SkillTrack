@@ -273,7 +273,8 @@ select#topic {
 <input type="text" id="topic" placeholder="e.g., Sets, React" /> -->
 
       <label for="date">Date</label>
-      <input type="date" id="date" value="2025-07-24"/>
+      <!-- <input type="date" id="date" value="2025-07-24"/> -->
+       <input type="date" id="date" readonly />
 
       <label for="title">Title</label>
       <input type="text" id="title" placeholder="Enter title" />
@@ -310,6 +311,20 @@ select#topic {
 
   <!-- Script -->
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('date').value = today;
+
+  // Reset percentage slider and value
+  const percentageSlider = document.getElementById('percentage');
+  const percentageValue = document.getElementById('percentageValue');
+  percentageSlider.value = 0;
+  percentageValue.textContent = '0%';
+});
+    document.addEventListener('DOMContentLoaded', function() {
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('date').value = today;
+});
     window.addEventListener('DOMContentLoaded', async () => {
   const email = localStorage.getItem('userEmail');
   if (!email) return;

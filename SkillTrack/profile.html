@@ -327,6 +327,22 @@
       document.getElementById('profilePic').style.backgroundImage = `url('${defaultImage}')`;
       document.getElementById('fileInput').value = "";
     }
+    document.addEventListener('DOMContentLoaded', async function() {
+  const email = localStorage.getItem('userEmail');
+  if (!email) return;
+  try {
+    const res = await fetch(`http://localhost:5000/api/profile?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (data.profilePic) {
+      document.getElementById('profilePic').style.backgroundImage = `url('${data.profilePic}')`;
+    }
+    if (data.username) document.getElementById('username').value = data.username;
+    if (data.about) document.getElementById('about').value = data.about;
+    if (data.college) document.getElementById('college').value = data.college;
+  } catch {
+    // Optionally handle error
+  }
+});
   </script>
 </body>
 </html>

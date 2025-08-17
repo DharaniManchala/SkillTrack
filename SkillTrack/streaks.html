@@ -187,6 +187,19 @@
       margin: 15px 0;
       color: #555;
     }
+    .toggle-btn {
+  background: #2970ff;
+  color: white;
+  padding: 7px 11px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(44, 92, 197, 0.08);
+  transition: background 0.2s, transform 0.1s;
+  position: static;
+  margin-right: 0;
+}
 
     .legend-box {
       width: 12px;
@@ -219,7 +232,11 @@
 </head>
 <body>
 
-  <button class="toggle-btn" id="toggleBtn">☰</button>
+  <!-- <button class="toggle-btn" id="toggleBtn">☰</button> -->
+   <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+  <button class="toggle-btn" id="toggleBtn" style="font-size:18px;padding:7px 11px;position:static;">☰</button>
+  <h1 style="font-size:22px;margin:0;">Streaks & Contributions</h1>
+</div>
 
   <div class="container">
     <div class="sidebar hidden" id="sidebar">
@@ -236,7 +253,7 @@
     </div>
 
     <div class="main-content" id="mainContent">
-      <h1>Streaks & Contributions</h1>
+      <!-- <h1>Streaks & Contributions</h1> -->
 
       <div class="top-stats">
         <div class="stat-card"><span>🔥 Current Streak</span><div class="value" id="currentStreak">0 Days</div></div>
@@ -246,10 +263,11 @@
 
       <div class="calendar-title">Contribution Calendar</div>
       <div class="calendar-wrapper">
-        <div class="month-labels">
+        <!-- <div class="month-labels">
           <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
           <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-        </div>
+        </div> -->
+        <div class="month-labels" id="monthLabels"></div>
         <div class="github-calendar" id="calendar"></div>
       </div>
 
@@ -264,12 +282,16 @@
       </div>
 
       <div class="bottom-section">
-        <div class="achievements">
+        <!-- <div class="achievements">
           <h3>Achievements</h3>
           <div class="achievement"><i>✅</i> 7-Day Streak</div>
           <div class="achievement"><i>✅</i> 30-Day Streak</div>
           <div class="achievement"><i>🔒</i> 100-Day Streak</div>
-        </div>
+        </div> -->
+        <div class="achievements" id="achievements">
+  <h3>Achievements</h3>
+  <!-- Achievements will be filled by JS -->
+</div>
         <div class="stats">
           <h3>Stats</h3>
           <p>Total Uploads: <strong id="totalContributions">0</strong></p>
@@ -278,58 +300,177 @@
       </div>
     </div>
   </div>
-
   <script>
-    const toggleBtn = document.getElementById("toggleBtn");
-    const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggleBtn");
+  const sidebar = document.getElementById("sidebar");
 
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("hidden");
-    });
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("hidden");
+  });
 
-    const calendar = document.getElementById("calendar");
-    const totalDays = 365;
-    const today = new Date();
-    const data = [];
+  const calendar = document.getElementById("calendar");
+  const totalDays = 365;
+  const today = new Date();
 
-    let currentStreak = 0;
-    let longestStreak = 0;
-    let streak = 0;
-    let total = 0;
+  function getDateStr(date) {
+    return date.toISOString().slice(0,10);
+  }
+
+  async function fetchDailyUploads() {
+    const email = localStorage.getItem('userEmail');
+    if (!email) return [];
+    try {
+      const res = await fetch(`http://localhost:5000/api/daily-uploads?email=${encodeURIComponent(email)}`);
+      return await res.json(); // [{date: "YYYY-MM-DD", count: N}, ...]
+    } catch {
+      return [];
+    }
+  }
+  function buildMonthLabels() {
+  const monthLabelsDiv = document.getElementById('monthLabels');
+  monthLabelsDiv.innerHTML = '';
+  const today = new Date();
+  let months = [];
+  let lastMonth = null;
+  // Find the start date for the heatmap (365 days ago)
+  let startDate = new Date(today);
+  startDate.setDate(today.getDate() - (totalDays - 1));
+  // For each week column
+  for (let col = 0; col < 53; col++) {
+    // Get the date for the first day of this week
+    let weekDate = new Date(startDate);
+    weekDate.setDate(startDate.getDate() + col * 7);
+    let month = weekDate.toLocaleString('default', { month: 'short' });
+    if (month !== lastMonth) {
+      months.push({ col, month });
+      lastMonth = month;
+    }
+  }
+  // Render labels
+  let html = '';
+  let lastCol = 0;
+  months.forEach((m, idx) => {
+    const spanWidth = (idx < months.length - 1 ? months[idx + 1].col : 53) - m.col;
+    html += `<span style="grid-column: ${m.col + 1} / span ${spanWidth}; text-align:left;">${m.month}</span>`;
+    lastCol = m.col;
+  });
+  monthLabelsDiv.innerHTML = html;
+}
+
+  function buildHeatmap(data) {
+    calendar.innerHTML = '';
+    buildMonthLabels();
+    let week = [];
+    let currentStreak = 0, longestStreak = 0, streak = 0, total = 0;
+    let uploadToday = false;
+    let sumUploads = 0;
+
+    // Build a map of date -> count
+    const dateMap = {};
+    data.forEach(item => { dateMap[item.date] = item.count; });
 
     for (let i = totalDays - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(today.getDate() - i);
-      const count = Math.random() < 0.7 ? Math.floor(Math.random() * 10) : 0;
-      data.push({ date, count });
-    }
+      const dateStr = getDateStr(date);
+      const count = dateMap[dateStr] || 0;
+      sumUploads += count;
 
-    let week = [];
-    data.forEach((item, index) => {
-      if (item.count > 0) {
+      if (count > 0) {
         streak++;
-        total++;
+        total += count;
+        if (i === 0) uploadToday = true;
         currentStreak = streak;
       } else {
         longestStreak = Math.max(longestStreak, streak);
         streak = 0;
       }
 
-      const level = item.count === 0 ? 0 : item.count <= 2 ? 1 : item.count <= 4 ? 2 : item.count <= 6 ? 3 : 4;
-      week.push(`<div class="day-cell level-${level}"></div>`);
+      const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 4 ? 2 : count <= 6 ? 3 : 4;
+      
+      week.push(`<div class="day-cell level-${level}" title="${dateStr}: ${count} uploads"></div>`);
 
-      if (week.length === 7 || index === data.length - 1) {
+      if (week.length === 7 || i === 0) {
         const weekColumn = document.createElement("div");
         weekColumn.classList.add("week-column");
         weekColumn.innerHTML = week.join("");
         calendar.appendChild(weekColumn);
         week = [];
       }
-    });
+    }
 
     document.getElementById("totalContributions").textContent = total;
     document.getElementById("currentStreak").textContent = `${currentStreak} Days`;
     document.getElementById("longestStreak").textContent = `${Math.max(longestStreak, currentStreak)} Days`;
-  </script>
+    // Update upload today status
+    const uploadTodayElem = document.querySelector('.stat-card .value[style]');
+    if (uploadTodayElem) {
+      uploadTodayElem.textContent = uploadToday ? "Yes" : "No";
+      uploadTodayElem.style.color = uploadToday ? "green" : "red";
+    }
+
+    // updateAchievements(Math.max(longestStreak, currentStreak));
+    updateAchievements(Math.max(longestStreak, currentStreak), dateMap);
+  }
+function getStreakBadges(dateMap) {
+  let streak = 0;
+  let streaks7 = 0, streaks30 = 0, streaks100 = 0;
+  let allStreaks = [];
+  for (let i = totalDays - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    const dateStr = date.toISOString().slice(0,10);
+    const count = dateMap[dateStr] || 0;
+    if (count > 0) {
+      streak++;
+    } else {
+      if (streak >= 7) streaks7++;
+      if (streak >= 30) streaks30++;
+      if (streak >= 100) streaks100++;
+      if (streak > 0) allStreaks.push(streak);
+      streak = 0;
+    }
+  }
+  // Check for streak ending today
+  if (streak >= 7) streaks7++;
+  if (streak >= 30) streaks30++;
+  if (streak >= 100) streaks100++;
+  if (streak > 0) allStreaks.push(streak);
+  return { streaks7, streaks30, streaks100, allStreaks };
+}
+  // function updateAchievements(longestStreak) {
+  //   const achievementsDiv = document.getElementById('achievements');
+  //   achievementsDiv.innerHTML = `<h3>Achievements</h3>
+  //     <div class="achievement ${longestStreak >= 7 ? 'unlocked' : 'locked'}"><i>${longestStreak >= 7 ? '✅' : '🔒'}</i> 7-Day Streak</div>
+  //     <div class="achievement ${longestStreak >= 30 ? 'unlocked' : 'locked'}"><i>${longestStreak >= 30 ? '✅' : '🔒'}</i> 30-Day Streak</div>
+  //     <div class="achievement ${longestStreak >= 100 ? 'unlocked' : 'locked'}"><i>${longestStreak >= 100 ? '✅' : '🔒'}</i> 100-Day Streak</div>
+  //   `;
+  // }
+  function updateAchievements(longestStreak, dateMap) {
+  const { streaks7, streaks30, streaks100, allStreaks } = getStreakBadges(dateMap);
+  const achievementsDiv = document.getElementById('achievements');
+  achievementsDiv.innerHTML = `<h3>Achievements</h3>
+    <div class="achievement ${longestStreak >= 7 ? 'unlocked' : 'locked'}">
+      <i>${longestStreak >= 7 ? '✅' : '🔒'}</i> 7-Day Streaks: <strong>${streaks7}</strong>
+    </div>
+    <div class="achievement ${longestStreak >= 30 ? 'unlocked' : 'locked'}">
+      <i>${longestStreak >= 30 ? '✅' : '🔒'}</i> 30-Day Streaks: <strong>${streaks30}</strong>
+    </div>
+    <div class="achievement ${longestStreak >= 100 ? 'unlocked' : 'locked'}">
+      <i>${longestStreak >= 100 ? '✅' : '🔒'}</i> 100-Day Streaks: <strong>${streaks100}</strong>
+    </div>
+    <div style="margin-top:10px;font-size:14px;color:#2970ff;">
+      <b>All Streaks:</b> ${allStreaks.join(', ')}
+    </div>
+  `;
+}
+
+  (async function() {
+    const dailyData = await fetchDailyUploads();
+    buildHeatmap(dailyData);
+  })();
+</script>
+
+  
 </body>
 </html>
